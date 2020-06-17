@@ -1,0 +1,6 @@
+config.mk
+
+*.o
+
+*.dll
+!cncnet5.dll
