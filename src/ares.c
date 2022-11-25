@@ -17,14 +17,15 @@
 #include <windows.h>
 #include <stdio.h>
 
-// I'm not good at NASM macros
-#define DEFINE_HOOK(offset, name, size)  \
-__asm (                                  \
-    ".section .syhks00,\"d8\";"          \
-    ".long " #offset ";"                 \
-    ".long " #size ";"                   \
-    ".long (" #name ");"                 \
-)
+#define DEFINE_HOOK(OFFSET, NAME, SIZE)           \
+char NAME ## _ ## OFFSET [0x20] = #NAME;          \
+__asm (                                           \
+    ".section .syhks00,\"d8\";"                   \
+    ".long " #OFFSET ";"                          \
+    ".long " #SIZE ";"                            \
+    ".long (_" #NAME "_" #OFFSET ");"             \
+);                                                \
+DWORD __cdecl __declspec(dllexport) NAME (void* R)
 
 #ifdef WWDEBUG
 #define dprintf printf
@@ -50,11 +51,7 @@ DllMain(HINSTANCE hinst, DWORD fdwReason, LPVOID lpvReserved)
     return TRUE;
 }
 
-DWORD Patch = 0x637450; // ANSI Ptc
-DEFINE_HOOK(0x7CD810, _Patch, 9);
-
-DWORD __cdecl __declspec(dllexport)
-Ptc()
+DEFINE_HOOK(0x7CD810, ExeRun_ApplyPatchs, 0x9)
 {
     if(hinstDLL) {
         char buf[MAX_PATH + 1] = { 0 };
